@@ -31,13 +31,9 @@ func (i *Iter) fetchCurrent() ([]interface{}, error) {
 // the interface should fail
 // TODO sheki pass in interface in Next and serialize to it.
 func (i *Iter) Next() (interface{}, bool) {
-	var err error
-	defer func() {
-		i.lastErr = err
-	}()
 	if i.index == 0 || i.index >= len(i.currentBatch) {
-		i.currentBatch, err = i.fetchCurrent()
-		if err != nil {
+		i.currentBatch, i.lastErr = i.fetchCurrent()
+		if i.lastErr != nil {
 			return nil, false
 		}
 		i.index = 0
@@ -49,7 +45,6 @@ func (i *Iter) Next() (interface{}, bool) {
 
 	current := i.currentBatch[i.index]
 	i.index++
-	i.lastErr = nil
 	i.processed++
 	return current, true
 }
