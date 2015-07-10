@@ -28,6 +28,7 @@ func NewClient(parseAppID string, RESTAPIKey string) (*Client, error) {
 func (c *Client) WithMasterKey(masterKey string) *Client {
 	newClient, _ := NewClient(c.appID, "")
 	newClient.masterKey = masterKey
+	newClient.logger = c.logger
 	return newClient
 }
 
@@ -36,6 +37,7 @@ func (c *Client) WithMasterKey(masterKey string) *Client {
 func (c *Client) WithSessionToken(sessionToken string) *Client {
 	newClient, _ := NewClient(c.appID, c.restApiKey)
 	newClient.sessionToken = sessionToken
+	newClient.logger = c.logger
 	return newClient
 }
 
@@ -95,6 +97,7 @@ func (c *Client) do(method, endpoint, contentType string, body io.Reader) (*http
 	case 200:
 	case 201:
 	case 400:
+		fallthrough
 	case 404:
 		defer resp.Body.Close()
 		err, _ := unmarshalError(resp.Body)

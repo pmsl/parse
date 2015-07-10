@@ -7,7 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
-    "github.com/tmc/parse"
+
+	"github.com/tmc/parse"
 )
 
 type GameScore struct {
@@ -86,7 +87,7 @@ func TestClassesEndpoints(t *testing.T) {
 
 func TestFileOperations(t *testing.T) {
 	client := mkclient(t)
-	client.SetMasterKey(os.Getenv("MASTER_KEY"))
+	client = client.WithMasterKey(os.Getenv("MASTER_KEY"))
 
 	f, err := client.UploadFile("answer.txt", strings.NewReader("42"), "text/plain")
 	if err != nil {
@@ -109,14 +110,7 @@ func TestUserOperations(t *testing.T) {
 	user.Password = "kinginyell0"
 
 	// Create user
-	userID, sessionToken, err := client.CreateUser(user)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Get user
-	loadedUser := MyParseUser{}
-	err = client.GetUser(userID, &loadedUser)
+	loadedUser, err := client.CreateUser(user)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +123,7 @@ func TestUserOperations(t *testing.T) {
 	}
 
 	// Delete user
-	client.SetSessionToken(sessionToken)
+	client = client.WithSessionToken(loadedUser.SessionToken)
 	err = client.DeleteUser(loggedInUser)
 	if err != nil {
 		t.Fatal(err)
