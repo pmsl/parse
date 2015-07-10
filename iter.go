@@ -1,8 +1,5 @@
 package parse
 
-// Zero time in the format parse understands
-const zeroTime = "0000-00-00T00:00:00.000Z"
-
 // NewIter returns an iterator to iterate over a pars e class
 func NewIter(client *Client, className string) (*Iter, error) {
 	return &Iter{client: client, class: className}, nil
