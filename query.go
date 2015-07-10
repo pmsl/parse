@@ -12,8 +12,10 @@ type QueryOptions struct {
 	Where string
 	// Limit controls the maximum number of objects returned for a query
 	Limit int
-	// field(s) to order results by
+	// Order results by
 	Order string
+	// Skip the given number of fields.
+	Skip int
 }
 
 // QueryClass performs a lookup of objects based on query options.
@@ -30,6 +32,9 @@ func (c *Client) QueryClass(className string, options *QueryOptions, destination
 		}
 		if options.Order != "" {
 			params.Set("order", fmt.Sprint(options.Order))
+		}
+		if options.Skip != 0 {
+			params.Set("skip", fmt.Sprint(options.Skip))
 		}
 		uri.RawQuery = params.Encode()
 	}
