@@ -1,7 +1,7 @@
 package parse
 
-// Scanner returns an iterator to iterate over a parse class
-func (c *Client) Scanner(className string, whereClause string) (*Scanner, error) {
+// NewScanner returns an iterator to iterate over a parse class
+func (c *Client) NewScanner(className string, whereClause string) (*Scanner, error) {
 	return &Scanner{client: c, where: whereClause, className: className}, nil
 }
 
