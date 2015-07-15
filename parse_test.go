@@ -21,6 +21,9 @@ type GameScore struct {
 func mkclient(t *testing.T) *parse.Client {
 	appID := os.Getenv("APPLICATION_ID")
 	apiKey := os.Getenv("REST_API_KEY")
+	if appID == "" || apiKey == "" {
+		t.Skip("skipped due to missing APPLICATION_ID and/or REST_API_KEY env vars")
+	}
 	client, err := parse.NewClient(appID, apiKey)
 	if testing.Verbose() {
 		client.TraceOn(log.New(os.Stderr, "[parse test] ", log.LstdFlags))
@@ -86,6 +89,9 @@ func TestClassesEndpoints(t *testing.T) {
 }
 
 func TestFileOperations(t *testing.T) {
+	if os.Getenv("MASTER_KEY") == "" {
+		t.Skip("skipped due to missing APPLICATION_ID and/or REST_API_KEY env vars")
+	}
 	client := mkclient(t)
 	client = client.WithMasterKey(os.Getenv("MASTER_KEY"))
 
@@ -104,10 +110,12 @@ func TestUserOperations(t *testing.T) {
 
 	type MyParseUser struct {
 		parse.ParseUser
+		Extra string `json:"extra"`
 	}
 	user := MyParseUser{}
 	user.Username = "joe" + fmt.Sprint(time.Now().Unix())
 	user.Password = "kinginyell0"
+	user.Extra = "extra content"
 
 	// Create user
 	loadedUser, err := client.CreateUser(user)
@@ -121,12 +129,55 @@ func TestUserOperations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if loggedInUser.Extra != "extra content" {
+		t.Fatalf(".Extra content unexpected: %v", loggedInUser.Extra)
+	}
+
+	client = client.WithSessionToken(loadedUser.SessionToken)
+
+	// CurrentUser()
+	currentUser := MyParseUser{}
+	if err := client.CurrentUser(&currentUser); err != nil {
+		t.Fatal(err)
+	}
 
 	// Delete user
-	client = client.WithSessionToken(loadedUser.SessionToken)
 	err = client.DeleteUser(loggedInUser)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+}
+
+func TestQuery(t *testing.T) {
+	client := mkclient(t)
+
+	type Widget struct {
+		parse.ParseObject
+		Name     string `json:"name"`
+		Quantity int    `json:"qty"`
+	}
+	widgets := []*Widget{
+		{Name: "widget a", Quantity: 42},
+		{Name: "widget b", Quantity: 41},
+		{Name: "widget c", Quantity: 40},
+	}
+	for _, w := range widgets {
+		if _, err := client.Create(w); err != nil {
+			t.Error(err)
+		}
+	}
+
+	dest := []*Widget{}
+	if err := client.Query(nil, &dest); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(dest) != len(widgets) {
+		t.Errorf("expected %v widgets, got %v", len(widgets), len(dest))
+	}
+
+	for _, w := range dest {
+		client.Delete(w)
+	}
 }

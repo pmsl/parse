@@ -108,21 +108,20 @@ func (c *Client) GetUser(userID string) (*User, error) {
 }
 
 // CurrentUser looks up the user associated with the provided credentials. The provided user is populated on success.
-func (c *Client) CurrentUser() (map[string]interface{}, error) {
+func (c *Client) CurrentUser(user User) error {
 	uri := fmt.Sprintf("/1/users/me")
 	resp, err := c.doSimple("GET", uri)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	c.trace("CurrentUser", uri, string(body))
-	user := make(map[string]interface{})
 	// TODO(tmc): warn if not == .Zero() before populating?
-	return user, json.Unmarshal(body, &user)
+	return json.Unmarshal(body, &user)
 }
 
 // UpdateUser updates the provided user with any provided fields and on success
