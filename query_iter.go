@@ -1,12 +1,13 @@
 package parse
 
-// NewScanner returns an iterator to iterate over a parse class
-func (c *Client) NewScanner(className string, whereClause string) (*Scanner, error) {
-	return &Scanner{client: c, where: whereClause, className: className}, nil
+// NewQueryIter returns an iterator to iterate over a parse class. It automatically manages
+// Skip values to process the entire query
+func (c *Client) NewQueryIter(className string, whereClause string) (*QueryIter, error) {
+	return &QueryIter{client: c, where: whereClause, className: className}, nil
 }
 
-// Scanner allows you to iterate over all objects in a Parse Class.
-type Scanner struct {
+// QueryIter allows you to iterate over all objects in a Parse Class.
+type QueryIter struct {
 	client    *Client
 	className string
 	where     string
@@ -17,7 +18,7 @@ type Scanner struct {
 	processed    uint
 }
 
-func (s *Scanner) fetchBatch() ([]interface{}, error) {
+func (s *QueryIter) fetchBatch() ([]interface{}, error) {
 	where := QueryOptions{
 		Where: s.where,
 		Limit: 1000,
@@ -31,7 +32,7 @@ func (s *Scanner) fetchBatch() ([]interface{}, error) {
 
 // Next returns the next object. It will return nil when the iterator is exhausted or an error has occurred.
 // TODO sheki pass in interface in Next and serialize to it.
-func (s *Scanner) Next() interface{} {
+func (s *QueryIter) Next() interface{} {
 	if s.index == 0 || s.index >= len(s.currentBatch) {
 		s.currentBatch, s.lastErr = s.fetchBatch()
 		if s.lastErr != nil {
@@ -51,6 +52,6 @@ func (s *Scanner) Next() interface{} {
 }
 
 // Err returns nil if no errors happened during iteration, or the actual error otherwise.
-func (s *Scanner) Err() error {
+func (s *QueryIter) Err() error {
 	return s.lastErr
 }
