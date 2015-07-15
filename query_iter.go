@@ -1,7 +1,7 @@
 package parse
 
-// NewQueryIter returns an iterator to iterate over a parse class. It automatically manages
-// Skip values to process the entire query
+// NewQueryIter returns an iterator to iterate over a query on a Parse Class ordered by
+// createdAt. It automatically manages Skip values to process the entire set of objects.
 func (c *Client) NewQueryIter(className string, whereClause string) (*QueryIter, error) {
 	return &QueryIter{client: c, where: whereClause, className: className}, nil
 }
